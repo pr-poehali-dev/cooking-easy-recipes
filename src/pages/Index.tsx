@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { RECIPES, CATEGORY_ICONS } from '@/data';
 import { useFavorites } from '@/hooks/useFavorites';
+import { usePageStats } from '@/hooks/usePageStats';
+import YandexAd from '@/components/YandexAd';
 
 const NAV = [
   { label: 'Главная', id: 'home' },
@@ -43,6 +45,7 @@ function KbjuBar({ kbju }: { kbju: { kcal: number; p: number; f: number; c: numb
 export default function Index() {
   const navigate = useNavigate();
   const { toggle, isFav, count: favCount } = useFavorites();
+  const { visitors, online, timeOnPage, formatTime, formatVisitors } = usePageStats();
   const [active, setActive] = useState<number | null>(null);
   const [query, setQuery] = useState('');
   const [email, setEmail] = useState('');
@@ -100,8 +103,42 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Топ-баннер рекламы (728×90) — над шапкой */}
+      <div className="border-b border-border/40 bg-muted/20 px-4 py-1.5">
+        <YandexAd size="horizontal" blockId="top-banner" className="mx-auto max-w-3xl !h-[50px] md:!h-[60px]" />
+      </div>
+
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
+        {/* Полоса счётчиков доверия */}
+        <div className="border-b border-border/30 bg-muted/30">
+          <div className="container flex items-center justify-between py-1.5">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+                </span>
+                <strong className="text-foreground">{online}</strong> онлайн сейчас
+              </span>
+              <span className="hidden items-center gap-1.5 sm:flex">
+                <Icon name="Users" size={12} className="text-primary" />
+                <strong className="text-foreground">{formatVisitors(visitors)}</strong> посетителей
+              </span>
+              <span className="hidden items-center gap-1.5 md:flex">
+                <Icon name="Star" size={12} className="text-secondary" />
+                <strong className="text-foreground">4.9</strong> рейтинг
+              </span>
+            </div>
+            {timeOnPage > 5 && (
+              <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
+                <Icon name="Clock" size={12} />
+                Вы на сайте: <strong className="text-foreground">{formatTime(timeOnPage)}</strong>
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className="container flex h-18 items-center justify-between py-4">
           <button onClick={() => scrollToId('home')} className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
@@ -224,9 +261,16 @@ export default function Index() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {RECIPES.slice(0, 6).map((r) => {
+          {RECIPES.slice(0, 6).map((r, idx) => {
             const i = RECIPES.indexOf(r);
             return (
+            <>
+            {/* Рекламный блок 300×250 после 3-го рецепта — встроен в сетку */}
+            {idx === 3 && (
+              <div key="ad-mid" className="md:col-span-3">
+                <YandexAd size="horizontal" blockId="mid-recipes" className="w-full" />
+              </div>
+            )}
             <article key={r.title} className="hover-lift overflow-hidden rounded-3xl border border-border bg-card">
               <div className="relative">
                 <img src={r.img} alt={r.title} className="aspect-[4/3] w-full object-cover" />
@@ -306,26 +350,16 @@ export default function Index() {
                 )}
               </div>
             </article>
+            </>
             );
           })}
         </div>
       </section>
 
-      {/* Рекламный баннер Яндекс.Директ */}
-      <section className="container py-6">
-        <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 py-8 text-center">
-          <div>
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Реклама · Яндекс.Директ</p>
-            <p className="mt-1 text-sm font-medium text-muted-foreground">Здесь будет показываться реклама после подключения Яндекс.Директ</p>
-            <button
-              onClick={() => toast('Для подключения рекламы зарегистрируйтесь на direct.yandex.ru')}
-              className="mt-3 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
-            >
-              Подключить Яндекс.Директ →
-            </button>
-          </div>
-        </div>
-      </section>
+      {/* Рекламный блок после рецептов */}
+      <div className="container pb-4">
+        <YandexAd size="horizontal" blockId="after-recipes" className="w-full" />
+      </div>
 
       {/* Платная подписка */}
       <section id="premium" className="container scroll-mt-24 py-12">
@@ -457,6 +491,11 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Рекламный блок перед футером */}
+      <div className="border-t border-border/40 bg-muted/20 px-4 py-3">
+        <YandexAd size="footer" blockId="pre-footer" className="mx-auto max-w-5xl" />
+      </div>
+
       {/* Footer / Contacts */}
       <footer id="contacts" className="scroll-mt-24 border-t border-border bg-card">
         <div className="container grid gap-8 py-12 md:grid-cols-4">
@@ -493,6 +532,10 @@ export default function Index() {
               ))}
             </div>
           </div>
+        </div>
+        {/* Реклама внутри футера */}
+        <div className="border-t border-border/50 py-4">
+          <YandexAd size="horizontal" blockId="footer-inner" className="mx-auto max-w-2xl !h-[50px]" />
         </div>
         <div className="border-t border-border py-5 text-center text-sm text-muted-foreground">
           © 2026 ВкусноПросто. Готовьте с удовольствием.
