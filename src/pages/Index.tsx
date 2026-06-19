@@ -4,7 +4,7 @@ import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { RECIPES, CATEGORY_ICONS } from '@/data';
+import { RECIPES, CATEGORY_ICONS, POPULAR_PRODUCTS, AFFILIATE_COLORS, getProductsForRecipeCategory } from '@/data';
 import { useFavorites } from '@/hooks/useFavorites';
 import { usePageStats } from '@/hooks/usePageStats';
 import YandexAd from '@/components/YandexAd';
@@ -13,6 +13,7 @@ const NAV = [
   { label: 'Главная', id: 'home' },
   { label: 'Категории', id: 'categories' },
   { label: 'Рецепты', id: 'recipes' },
+  { label: 'Магазин', id: 'shop' },
   { label: 'Курсы', id: 'courses' },
   { label: 'О нас', id: 'about' },
   { label: 'Контакты', id: 'contacts' },
@@ -148,7 +149,14 @@ export default function Index() {
           </button>
           <nav className="hidden items-center gap-7 md:flex">
             {NAV.map((n) => (
-              <button key={n.label} onClick={() => scrollToId(n.id)} className="text-sm font-medium text-foreground/70 transition-colors hover:text-primary">{n.label}</button>
+              <button
+                key={n.label}
+                onClick={() => n.id === 'shop' ? navigate('/shop') : scrollToId(n.id)}
+                className={`text-sm font-medium transition-colors hover:text-primary ${n.id === 'shop' ? 'font-semibold text-primary' : 'text-foreground/70'}`}
+              >
+                {n.id === 'shop' && <Icon name="ShoppingBag" size={14} className="mr-1 inline" />}
+                {n.label}
+              </button>
             ))}
           </nav>
           <div className="flex items-center gap-2">
@@ -329,23 +337,46 @@ export default function Index() {
                         ))}
                       </ol>
                     </div>
-                    {/* Партнёрский блок внутри рецепта */}
-                    <div className="rounded-2xl border border-secondary/40 bg-secondary/10 p-4">
-                      <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        <Icon name="ShoppingCart" size={13} /> Понадобится для рецепта
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {['Сковорода с антипригаром', 'Кухонные весы', 'Острый нож'].map((item) => (
-                          <button
-                            key={item}
-                            onClick={() => toast(`Переходим в магазин: ${item}`)}
-                            className="rounded-full border border-secondary bg-background px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                          >
-                            {item} →
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    {/* Партнёрские товары под рецептом */}
+                    {(() => {
+                      const recProducts = getProductsForRecipeCategory(r.category);
+                      if (!recProducts.length) return null;
+                      return (
+                        <div className="rounded-2xl border border-secondary/40 bg-secondary/10 p-4">
+                          <div className="mb-3 flex items-center justify-between">
+                            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                              <Icon name="ShoppingCart" size={13} /> Пригодится для этого рецепта
+                            </p>
+                            <button onClick={() => navigate('/shop')} className="text-xs font-semibold text-primary hover:underline">
+                              Все товары →
+                            </button>
+                          </div>
+                          <div className="space-y-2">
+                            {recProducts.slice(0, 2).map(p => {
+                              const ac = AFFILIATE_COLORS[p.affiliate] || 'bg-muted text-muted-foreground';
+                              return (
+                                <div key={p.id} className="flex items-center justify-between rounded-xl bg-background px-3 py-2.5">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="truncate text-sm font-semibold">{p.name}</div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <span>{p.price.toLocaleString('ru')} ₽</span>
+                                      {p.oldPrice && <span className="line-through">{p.oldPrice.toLocaleString('ru')} ₽</span>}
+                                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${ac}`}>{p.affiliate}</span>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => { toast(`Переходим в ${p.affiliate}: «${p.name}»`); window.open(p.url, '_blank'); }}
+                                    className="ml-3 flex-none rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:opacity-90"
+                                  >
+                                    Купить
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -360,6 +391,91 @@ export default function Index() {
       <div className="container pb-4">
         <YandexAd size="horizontal" blockId="after-recipes" className="w-full" />
       </div>
+
+      {/* Популярные товары */}
+      <section id="shop" className="container scroll-mt-24 py-12">
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <span className="font-accent text-2xl text-primary">партнёрский магазин</span>
+            <h2 className="font-display text-3xl font-bold md:text-4xl">Популярные товары</h2>
+          </div>
+          <button
+            onClick={() => navigate('/shop')}
+            className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+          >
+            Все товары <Icon name="ArrowRight" size={15} />
+          </button>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {POPULAR_PRODUCTS.slice(0, 4).map(p => {
+            const affiliateClass = AFFILIATE_COLORS[p.affiliate] || 'bg-muted text-muted-foreground';
+            return (
+              <div key={p.id} className="hover-lift flex flex-col overflow-hidden rounded-3xl border border-border bg-card">
+                <div className="relative overflow-hidden">
+                  <img src={p.img} alt={p.name} className="aspect-[4/3] w-full object-cover transition-transform duration-500 hover:scale-105" />
+                  {p.tag && (
+                    <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
+                      {p.tag}
+                    </span>
+                  )}
+                  <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold ${affiliateClass}`}>
+                    {p.affiliate}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col p-4">
+                  <div className="mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{p.shopSection}</div>
+                  <h3 className="mb-1 font-display font-bold leading-snug">{p.name}</h3>
+                  <p className="mb-3 flex-1 text-xs text-muted-foreground">{p.desc}</p>
+                  <div className="mb-3 flex items-center gap-1.5">
+                    <span className="flex">
+                      {[1,2,3,4,5].map(s => (
+                        <Icon key={s} name="Star" size={11} className={s <= Math.round(p.rating) ? 'fill-secondary text-secondary' : 'text-muted-foreground/30'} />
+                      ))}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">({p.reviews})</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-display text-xl font-bold text-primary">{p.price.toLocaleString('ru')} ₽</div>
+                      {p.oldPrice && <div className="text-xs text-muted-foreground line-through">{p.oldPrice.toLocaleString('ru')} ₽</div>}
+                    </div>
+                    <button
+                      onClick={() => { toast(`Переходим в ${p.affiliate}: «${p.name}»`); window.open(p.url, '_blank'); }}
+                      className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"
+                    >
+                      Купить →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Подборки по категориям */}
+        <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          {Object.keys(CATEGORY_ICONS).slice(0, 3).map(cat => {
+            const catProducts = getProductsForRecipeCategory(cat);
+            return (
+              <button
+                key={cat}
+                onClick={() => navigate(`/shop`)}
+                className="hover-lift flex items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left"
+              >
+                <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon name={CATEGORY_ICONS[cat]} size={22} />
+                </div>
+                <div>
+                  <div className="font-display font-bold">Для раздела «{cat}»</div>
+                  <div className="text-xs text-muted-foreground">{catProducts.length} товара подобрано</div>
+                </div>
+                <Icon name="ChevronRight" size={16} className="ml-auto text-muted-foreground" />
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Платная подписка */}
       <section id="premium" className="container scroll-mt-24 py-12">

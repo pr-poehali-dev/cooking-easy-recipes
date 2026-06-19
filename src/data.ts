@@ -153,6 +153,158 @@ export const CATEGORY_PRODUCTS: Record<string, { name: string; desc: string; pri
   ],
 };
 
+export interface ShopProduct {
+  id: string;
+  name: string;
+  desc: string;
+  price: number;
+  oldPrice?: number;
+  icon: string;
+  img?: string;
+  tag?: string;           // «Хит», «Скидка», «Новинка»
+  rating: number;
+  reviews: number;
+  shopSection: string;    // раздел магазина
+  categories: string[];   // к каким категориям рецептов подходит
+  affiliate: string;      // Wildberries / Ozon / Яндекс.Маркет
+  url: string;            // партнёрская ссылка (заглушка)
+}
+
+export const SHOP_SECTIONS = ['Посуда', 'Техника', 'Ножи и инструменты', 'Специи и продукты', 'Хранение'];
+
+export const SHOP_PRODUCTS: ShopProduct[] = [
+  // ПОСУДА
+  {
+    id: 'p1', name: 'Сковорода чугунная 28 см', desc: 'Равномерный нагрев, идеальна для стейков, блинов и тушения. Служит десятилетиями.',
+    price: 3490, oldPrice: 4200, icon: 'Circle',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/7203623b-9914-4fc0-9943-cc48ba76f862.jpg',
+    tag: 'Хит', rating: 4.9, reviews: 312, shopSection: 'Посуда',
+    categories: ['Основные', 'Завтраки'], affiliate: 'Wildberries', url: 'https://wb.ru',
+  },
+  {
+    id: 'p2', name: 'Кастрюля 5 л нержавейка', desc: 'Для борща, ухи и любых супов. Утолщённое дно — не пригорает.',
+    price: 2190, icon: 'Soup',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/7203623b-9914-4fc0-9943-cc48ba76f862.jpg',
+    rating: 4.7, reviews: 198, shopSection: 'Посуда',
+    categories: ['Супы'], affiliate: 'Ozon', url: 'https://ozon.ru',
+  },
+  {
+    id: 'p3', name: 'Блинница антипригарная 24 см', desc: 'Специальная форма для идеально круглых блинов без масла.',
+    price: 1290, oldPrice: 1590, icon: 'Circle',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/7203623b-9914-4fc0-9943-cc48ba76f862.jpg',
+    tag: 'Скидка', rating: 4.8, reviews: 241, shopSection: 'Посуда',
+    categories: ['Завтраки', 'Десерты'], affiliate: 'Wildberries', url: 'https://wb.ru',
+  },
+  {
+    id: 'p4', name: 'Форма силиконовая для торта', desc: 'Набор 3 формы разных диаметров. Ровные коржи без пригара.',
+    price: 590, icon: 'Circle',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/7203623b-9914-4fc0-9943-cc48ba76f862.jpg',
+    rating: 4.6, reviews: 87, shopSection: 'Посуда',
+    categories: ['Десерты'], affiliate: 'Ozon', url: 'https://ozon.ru',
+  },
+  {
+    id: 'p5', name: 'Салатник стеклянный 3 л', desc: 'Для Оливье и любых больших салатов. Прозрачное стекло, крышка в комплекте.',
+    price: 590, icon: 'Circle',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/7203623b-9914-4fc0-9943-cc48ba76f862.jpg',
+    rating: 4.5, reviews: 64, shopSection: 'Посуда',
+    categories: ['Салаты'], affiliate: 'Wildberries', url: 'https://wb.ru',
+  },
+
+  // ТЕХНИКА
+  {
+    id: 't1', name: 'Миксер ручной 500 Вт', desc: '5 скоростей, турборежим. Для крема, теста и взбивания яиц.',
+    price: 1890, oldPrice: 2490, icon: 'Zap',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/c3fb8bd5-bc98-4a5c-b5d6-0dc778ad023d.jpg',
+    tag: 'Скидка', rating: 4.8, reviews: 156, shopSection: 'Техника',
+    categories: ['Десерты', 'Завтраки'], affiliate: 'Яндекс.Маркет', url: 'https://market.yandex.ru',
+  },
+  {
+    id: 't2', name: 'Блендер стационарный 1000 Вт', desc: 'Смузи, супы-пюре, соусы за 30 секунд. Колба 1,5 л.',
+    price: 4290, icon: 'Zap',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/c3fb8bd5-bc98-4a5c-b5d6-0dc778ad023d.jpg',
+    tag: 'Новинка', rating: 4.9, reviews: 203, shopSection: 'Техника',
+    categories: ['Напитки', 'Супы'], affiliate: 'Ozon', url: 'https://ozon.ru',
+  },
+  {
+    id: 't3', name: 'Кухонные весы цифровые', desc: 'Точность до 1 г, макс. 5 кг. Встроенный таймер.',
+    price: 890, icon: 'Scale',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/c3fb8bd5-bc98-4a5c-b5d6-0dc778ad023d.jpg',
+    tag: 'Хит', rating: 4.7, reviews: 445, shopSection: 'Техника',
+    categories: ['Основные', 'Десерты', 'Завтраки'], affiliate: 'Wildberries', url: 'https://wb.ru',
+  },
+  {
+    id: 't4', name: 'Тостер 4 секции', desc: '6 режимов поджарки, функция разморозки. Стальной корпус.',
+    price: 2490, icon: 'Zap',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/c3fb8bd5-bc98-4a5c-b5d6-0dc778ad023d.jpg',
+    rating: 4.6, reviews: 92, shopSection: 'Техника',
+    categories: ['Завтраки'], affiliate: 'Яндекс.Маркет', url: 'https://market.yandex.ru',
+  },
+
+  // НОЖИ И ИНСТРУМЕНТЫ
+  {
+    id: 'k1', name: 'Нож шеф-повара 20 см', desc: 'Немецкая сталь, идеальный баланс. Подходит для мяса, овощей и зелени.',
+    price: 2890, oldPrice: 3500, icon: 'Scissors',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/b76dde41-18a6-4e14-a3f5-746c2eea9cb3.jpg',
+    tag: 'Хит', rating: 4.9, reviews: 378, shopSection: 'Ножи и инструменты',
+    categories: ['Основные', 'Салаты', 'Супы'], affiliate: 'Wildberries', url: 'https://wb.ru',
+  },
+  {
+    id: 'k2', name: 'Набор ножей 5 предметов', desc: 'Шеф, хлебный, для чистки, обвалочный + ножницы. Подставка в комплекте.',
+    price: 3990, icon: 'Scissors',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/b76dde41-18a6-4e14-a3f5-746c2eea9cb3.jpg',
+    tag: 'Новинка', rating: 4.8, reviews: 134, shopSection: 'Ножи и инструменты',
+    categories: ['Основные', 'Салаты'], affiliate: 'Ozon', url: 'https://ozon.ru',
+  },
+  {
+    id: 'k3', name: 'Овощечистка керамическая', desc: 'Ультратонкая чистка, не окисляет овощи. Эргономичная ручка.',
+    price: 390, icon: 'Scissors',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/b76dde41-18a6-4e14-a3f5-746c2eea9cb3.jpg',
+    rating: 4.5, reviews: 217, shopSection: 'Ножи и инструменты',
+    categories: ['Салаты', 'Супы'], affiliate: 'Wildberries', url: 'https://wb.ru',
+  },
+  {
+    id: 'k4', name: 'Доска разделочная бамбук', desc: 'Антибактериальный бамбук, не тупит ножи. Размер 40×25 см.',
+    price: 890, icon: 'Layers',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/b76dde41-18a6-4e14-a3f5-746c2eea9cb3.jpg',
+    rating: 4.7, reviews: 289, shopSection: 'Ножи и инструменты',
+    categories: ['Основные', 'Салаты', 'Завтраки', 'Супы'], affiliate: 'Ozon', url: 'https://ozon.ru',
+  },
+
+  // СПЕЦИИ И ПРОДУКТЫ
+  {
+    id: 's1', name: 'Набор специй для супов', desc: '12 видов пряных трав: лавр, тмин, кориандр, розмарин и другие.',
+    price: 490, icon: 'Leaf',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/7203623b-9914-4fc0-9943-cc48ba76f862.jpg',
+    rating: 4.8, reviews: 167, shopSection: 'Специи и продукты',
+    categories: ['Супы', 'Основные'], affiliate: 'Яндекс.Маркет', url: 'https://market.yandex.ru',
+  },
+  {
+    id: 's2', name: 'Мёд натуральный 1 кг', desc: 'Гречишный мёд из экологически чистых районов. Без добавок.',
+    price: 680, icon: 'Leaf',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/7203623b-9914-4fc0-9943-cc48ba76f862.jpg',
+    tag: 'Хит', rating: 4.9, reviews: 521, shopSection: 'Специи и продукты',
+    categories: ['Десерты', 'Завтраки'], affiliate: 'Wildberries', url: 'https://wb.ru',
+  },
+  {
+    id: 's3', name: 'Масло оливковое Extra Virgin', desc: 'Холодный отжим, первый пресс. 0,5 л. Для заправки и жарки.',
+    price: 690, icon: 'Droplets',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/7203623b-9914-4fc0-9943-cc48ba76f862.jpg',
+    rating: 4.7, reviews: 203, shopSection: 'Специи и продукты',
+    categories: ['Салаты', 'Основные'], affiliate: 'Ozon', url: 'https://ozon.ru',
+  },
+];
+
+export const POPULAR_PRODUCTS = SHOP_PRODUCTS.filter(p => p.tag === 'Хит' || p.reviews > 200);
+
+export const getProductsForRecipeCategory = (category: string): ShopProduct[] =>
+  SHOP_PRODUCTS.filter(p => p.categories.includes(category)).slice(0, 3);
+
+export const AFFILIATE_COLORS: Record<string, string> = {
+  'Wildberries': 'bg-purple-100 text-purple-700',
+  'Ozon':        'bg-blue-100 text-blue-700',
+  'Яндекс.Маркет': 'bg-yellow-100 text-yellow-700',
+};
+
 export const CATEGORY_BLOG: Record<string, { title: string; text: string; emoji: string }[]> = {
   'Завтраки': [
     { emoji: '⏰', title: '5 завтраков за 10 минут', text: 'Собрали самые быстрые варианты для тех, кто спешит утром. Никаких сложностей — только вкус.' },
