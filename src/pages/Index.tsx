@@ -110,7 +110,7 @@ const NAV = [
   { label: 'Главная', id: 'home' },
   { label: 'Категории', id: 'categories' },
   { label: 'Рецепты', id: 'recipes' },
-  { label: 'Избранное', id: 'recipes' },
+  { label: 'Курсы', id: 'courses' },
   { label: 'О нас', id: 'about' },
   { label: 'Контакты', id: 'contacts' },
 ];
@@ -202,8 +202,8 @@ export default function Index() {
               <button key={n.label} onClick={() => scrollToId(n.id)} className="text-sm font-medium text-foreground/70 transition-colors hover:text-primary">{n.label}</button>
             ))}
           </nav>
-          <Button onClick={() => scrollToId('subscribe')} className="rounded-full font-semibold">
-            <Icon name="Bell" size={16} className="mr-1" /> Подписка
+          <Button onClick={() => scrollToId('premium')} className="rounded-full font-semibold">
+            <Icon name="Crown" size={16} className="mr-1" /> Премиум
           </Button>
         </div>
       </header>
@@ -223,7 +223,12 @@ export default function Index() {
             <p className="mt-6 max-w-md text-lg text-muted-foreground">
               Быстрые и понятные блюда с автоматическим расчётом калорийности и КБЖУ для каждого рецепта.
             </p>
-            <div className="mt-8 flex max-w-md items-center gap-2 rounded-full border border-border bg-card p-2 shadow-sm">
+            <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5"><Icon name="Users" size={16} className="text-primary" /> <strong className="text-foreground">12 400+</strong> читателей</span>
+              <span className="flex items-center gap-1.5"><Icon name="BookOpen" size={16} className="text-accent" /> <strong className="text-foreground">{RECIPES.length}</strong> рецептов</span>
+              <span className="flex items-center gap-1.5"><Icon name="Star" size={16} className="text-secondary" /> <strong className="text-foreground">4.9</strong> рейтинг</span>
+            </div>
+            <div className="mt-5 flex max-w-md items-center gap-2 rounded-full border border-border bg-card p-2 shadow-sm">
               <Icon name="Search" size={20} className="ml-3 text-muted-foreground" />
               <Input
                 value={query}
@@ -378,12 +383,134 @@ export default function Index() {
                         ))}
                       </ol>
                     </div>
+                    {/* Партнёрский блок внутри рецепта */}
+                    <div className="rounded-2xl border border-secondary/40 bg-secondary/10 p-4">
+                      <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        <Icon name="ShoppingCart" size={13} /> Понадобится для рецепта
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {['Сковорода с антипригаром', 'Кухонные весы', 'Острый нож'].map((item) => (
+                          <button
+                            key={item}
+                            onClick={() => toast(`Переходим в магазин: ${item}`)}
+                            className="rounded-full border border-secondary bg-background px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                          >
+                            {item} →
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             </article>
             );
           })}
+        </div>
+      </section>
+
+      {/* Рекламный баннер Яндекс.Директ */}
+      <section className="container py-6">
+        <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 py-8 text-center">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Реклама · Яндекс.Директ</p>
+            <p className="mt-1 text-sm font-medium text-muted-foreground">Здесь будет показываться реклама после подключения Яндекс.Директ</p>
+            <button
+              onClick={() => toast('Для подключения рекламы зарегистрируйтесь на direct.yandex.ru')}
+              className="mt-3 rounded-full border border-primary/40 px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+            >
+              Подключить Яндекс.Директ →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Платная подписка */}
+      <section id="premium" className="container scroll-mt-24 py-12">
+        <div className="mb-10 text-center">
+          <span className="font-accent text-2xl text-primary">зарабатывай больше</span>
+          <h2 className="font-display text-3xl font-bold md:text-4xl">Подписка для настоящих гурманов</h2>
+          <p className="mx-auto mt-3 max-w-lg text-muted-foreground">Базовые рецепты — бесплатно. Эксклюзивные блюда, планы питания и без рекламы — по подписке.</p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {[
+            {
+              name: 'Бесплатно', price: '0 ₽', period: 'навсегда', color: 'bg-muted', btn: 'bg-muted text-foreground',
+              features: ['Доступ к базовым рецептам', 'Расчёт КБЖУ', 'Поиск и фильтры', '— Без эксклюзивных рецептов', '— Реклама на сайте'],
+              action: () => toast('Вы уже используете бесплатный тариф!'),
+            },
+            {
+              name: 'Премиум', price: '299 ₽', period: 'в месяц', color: 'bg-primary', btn: 'bg-background text-foreground',
+              badge: 'Популярный',
+              features: ['Все рецепты без ограничений', 'Расчёт КБЖУ', 'Планы питания на неделю', 'Без рекламы', 'Новые рецепты первым'],
+              action: () => toast('Оформление подписки Премиум — скоро!'),
+            },
+            {
+              name: 'Семейный', price: '499 ₽', period: 'в месяц', color: 'bg-foreground', btn: 'bg-primary text-primary-foreground',
+              features: ['Всё из Премиум', 'До 5 аккаунтов', 'Персональные рекомендации', 'Шоппинг-листы', 'Приоритетная поддержка'],
+              action: () => toast('Оформление семейной подписки — скоро!'),
+            },
+          ].map((plan) => (
+            <div key={plan.name} className={`relative flex flex-col rounded-3xl p-7 text-background ${plan.color}`}>
+              {plan.badge && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-secondary px-4 py-1 text-xs font-bold text-foreground">
+                  {plan.badge}
+                </span>
+              )}
+              <div className={`mb-1 font-display text-xl font-bold ${plan.color === 'bg-muted' ? 'text-foreground' : ''}`}>{plan.name}</div>
+              <div className={`mb-6 font-display text-4xl font-bold ${plan.color === 'bg-muted' ? 'text-foreground' : ''}`}>
+                {plan.price} <span className="text-base font-normal opacity-70">{plan.period}</span>
+              </div>
+              <ul className="mb-8 flex-1 space-y-2">
+                {plan.features.map((f) => (
+                  <li key={f} className={`flex items-center gap-2 text-sm ${f.startsWith('—') ? 'opacity-40' : ''} ${plan.color === 'bg-muted' ? 'text-foreground' : ''}`}>
+                    <Icon name={f.startsWith('—') ? 'X' : 'Check'} size={15} /> {f.replace('— ', '')}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={plan.action}
+                className={`rounded-full py-3 text-sm font-bold transition-opacity hover:opacity-90 ${plan.btn}`}
+              >
+                {plan.name === 'Бесплатно' ? 'Текущий тариф' : 'Оформить подписку'}
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Курсы и планы питания */}
+      <section id="courses" className="container scroll-mt-24 py-12">
+        <div className="mb-8 text-center">
+          <span className="font-accent text-2xl text-primary">разовая покупка</span>
+          <h2 className="font-display text-3xl font-bold md:text-4xl">Кулинарные курсы и планы</h2>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { icon: 'CalendarDays', title: 'План питания на 7 дней', desc: '21 рецепт с готовым списком покупок и расчётом КБЖУ на неделю', price: '390 ₽', badge: 'Хит' },
+            { icon: 'Video', title: 'Курс «Быстрые ужины»', desc: '10 видео-уроков — ужин за 20 минут из простых продуктов', price: '790 ₽', badge: null },
+            { icon: 'Salad', title: 'Курс «ПП без скуки»', desc: 'Правильное питание без строгих диет — 15 вкусных рецептов', price: '590 ₽', badge: 'Новинка' },
+          ].map((course) => (
+            <div key={course.title} className="hover-lift relative flex flex-col rounded-3xl border border-border bg-card p-6">
+              {course.badge && (
+                <span className="absolute right-5 top-5 rounded-full bg-secondary px-3 py-0.5 text-xs font-bold text-foreground">{course.badge}</span>
+              )}
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Icon name={course.icon} size={28} />
+              </div>
+              <h3 className="mb-2 font-display text-xl font-bold">{course.title}</h3>
+              <p className="mb-5 flex-1 text-sm text-muted-foreground">{course.desc}</p>
+              <div className="flex items-center justify-between">
+                <span className="font-display text-2xl font-bold text-primary">{course.price}</span>
+                <button
+                  onClick={() => toast(`Покупка «${course.title}» — скоро!`)}
+                  className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                >
+                  Купить
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
