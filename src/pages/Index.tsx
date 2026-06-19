@@ -4,16 +4,76 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
-const CATEGORIES = [
-  { name: 'Завтраки', icon: 'Coffee', count: 42 },
-  { name: 'Супы', icon: 'Soup', count: 31 },
-  { name: 'Основные', icon: 'UtensilsCrossed', count: 88 },
-  { name: 'Салаты', icon: 'Salad', count: 27 },
-  { name: 'Десерты', icon: 'CakeSlice', count: 54 },
-  { name: 'Напитки', icon: 'CupSoda', count: 19 },
-];
+const CATEGORY_ICONS: Record<string, string> = {
+  'Завтраки': 'Coffee',
+  'Супы': 'Soup',
+  'Основные': 'UtensilsCrossed',
+  'Салаты': 'Salad',
+  'Десерты': 'CakeSlice',
+  'Напитки': 'CupSoda',
+};
 
 const RECIPES = [
+  {
+    title: 'Борщ классический',
+    category: 'Супы',
+    time: 30,
+    difficulty: 'Просто',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/2b5f0887-dca5-4ab7-b2e8-bac800feb76f.jpg',
+    kbju: { kcal: 210, p: 10, f: 8, c: 24 },
+    ingredients: ['Свёкла — 2 шт', 'Капуста — 200 г', 'Картофель — 2 шт', 'Морковь — 1 шт', 'Лук — 1 шт', 'Томатная паста — 2 ст.л.', 'Говяжий бульон — 1 л', 'Сметана, укроп — для подачи'],
+    steps: ['Нарежьте свёклу соломкой, обжарьте с томатной пастой 10 минут.', 'В кипящий бульон добавьте картофель кубиками и варите 10 минут.', 'Добавьте нашинкованную капусту и морковь, варите ещё 7 минут.', 'Введите свёклу, посолите, проварите 5 минут. Подавайте со сметаной и укропом.'],
+  },
+  {
+    title: 'Блины со сметаной',
+    category: 'Завтраки',
+    time: 20,
+    difficulty: 'Просто',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/2eba423b-d81a-4ebd-8f92-032c53566530.jpg',
+    kbju: { kcal: 320, p: 9, f: 12, c: 44 },
+    ingredients: ['Мука — 200 г', 'Молоко — 500 мл', 'Яйца — 2 шт', 'Сахар — 1 ст.л.', 'Соль — щепотка', 'Масло сливочное — 30 г', 'Сметана — для подачи'],
+    steps: ['Взбейте яйца с сахаром и солью.', 'Добавьте муку и постепенно влейте молоко, размешайте до однородного теста без комков.', 'Добавьте растопленное масло. Дайте тесту постоять 10 минут.', 'Жарьте тонкие блины на раскалённой сковороде по 1–2 минуты с каждой стороны. Подавайте со сметаной.'],
+  },
+  {
+    title: 'Пельмени домашние',
+    category: 'Основные',
+    time: 25,
+    difficulty: 'Просто',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/cf7f4b0f-4104-445c-9b8f-db0e48528e54.jpg',
+    kbju: { kcal: 520, p: 26, f: 18, c: 62 },
+    ingredients: ['Готовые пельмени — 400 г', 'Вода — 2 л', 'Соль — 1 ст.л.', 'Лавровый лист — 2 шт', 'Перец горошком — 5 шт', 'Сметана — для подачи', 'Сливочное масло — 20 г'],
+    steps: ['Доведите воду до кипения, добавьте соль, лавровый лист и перец.', 'Аккуратно опустите пельмени в кипящую воду, помешайте.', 'Варите 7–8 минут после всплытия до готовности.', 'Выложите в тарелку, добавьте масло. Подавайте со сметаной.'],
+  },
+  {
+    title: 'Салат Оливье',
+    category: 'Салаты',
+    time: 25,
+    difficulty: 'Просто',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/f2e2a054-0009-4740-acba-dfa22a045249.jpg',
+    kbju: { kcal: 280, p: 11, f: 18, c: 19 },
+    ingredients: ['Картофель — 3 шт', 'Морковь — 2 шт', 'Яйца — 3 шт', 'Колбаса варёная — 200 г', 'Огурцы маринованные — 3 шт', 'Горошек — 1 банка', 'Майонез — 3 ст.л.'],
+    steps: ['Отварите картофель, морковь и яйца до готовности, остудите.', 'Нарежьте всё кубиками одинакового размера.', 'Добавьте горошек и нарезанную колбасу.', 'Заправьте майонезом, перемешайте, посолите по вкусу. Охладите 20 минут.'],
+  },
+  {
+    title: 'Медовик быстрый',
+    category: 'Десерты',
+    time: 30,
+    difficulty: 'Просто',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/ff3df9a4-5f2a-45ff-9d6f-f1dcbda0c5d5.jpg',
+    kbju: { kcal: 420, p: 7, f: 16, c: 62 },
+    ingredients: ['Мёд — 3 ст.л.', 'Сахар — 100 г', 'Яйца — 2 шт', 'Масло — 80 г', 'Сода — 1 ч.л.', 'Мука — 350 г', 'Сметана 20% — 400 г для крема', 'Сахарная пудра — 3 ст.л.'],
+    steps: ['Растопите мёд с маслом и сахаром на водяной бане, добавьте соду — масса вспенится.', 'Снимите с огня, вбейте яйца, добавьте муку — замесите тесто.', 'Разделите на 6 частей, раскатайте и выпекайте коржи по 5 минут при 180°С.', 'Взбейте сметану с пудрой. Соберите торт, промазав каждый корж. Уберите в холодильник на 2 часа.'],
+  },
+  {
+    title: 'Уха рыбная',
+    category: 'Супы',
+    time: 25,
+    difficulty: 'Просто',
+    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/0607754d-514d-4b0f-b79a-ea97763626da.jpg',
+    kbju: { kcal: 180, p: 18, f: 5, c: 14 },
+    ingredients: ['Рыба (судак или горбуша) — 400 г', 'Картофель — 3 шт', 'Морковь — 1 шт', 'Лук — 1 шт', 'Вода — 1.5 л', 'Лавровый лист — 2 шт', 'Укроп, соль, перец — по вкусу'],
+    steps: ['Залейте рыбу холодной водой, доведите до кипения, снимите пену.', 'Добавьте нарезанные картофель, морковь и лук целиком.', 'Варите 15 минут на среднем огне, добавьте лавровый лист и специи.', 'Выньте лук, посыпьте свежим укропом и подавайте горячей.'],
+  },
   {
     title: 'Будда-боул с курицей',
     category: 'Основные',
@@ -204,19 +264,20 @@ export default function Index() {
           <button onClick={() => scrollToId('recipes')} className="text-sm font-semibold text-primary hover:underline">Все категории →</button>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {CATEGORIES.map((c) => {
-            const isActive = activeCategory === c.name;
+          {Object.entries(CATEGORY_ICONS).map(([name, icon]) => {
+            const isActive = activeCategory === name;
+            const count = RECIPES.filter((r) => r.category === name).length;
             return (
               <button
-                key={c.name}
-                onClick={() => handleCategoryClick(c.name)}
+                key={name}
+                onClick={() => handleCategoryClick(name)}
                 className={`hover-lift group rounded-2xl border p-5 text-center transition-colors ${isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card'}`}
               >
                 <div className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${isActive ? 'bg-white/20 text-white' : 'bg-muted text-primary group-hover:bg-primary group-hover:text-primary-foreground'}`}>
-                  <Icon name={c.icon} size={26} />
+                  <Icon name={icon} size={26} />
                 </div>
-                <div className="font-display text-lg font-semibold">{c.name}</div>
-                <div className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>{c.count} рецептов</div>
+                <div className="font-display text-lg font-semibold">{name}</div>
+                <div className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>{count} {count === 1 ? 'рецепт' : 'рецепта'}</div>
               </button>
             );
           })}
