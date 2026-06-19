@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { RECIPES, CATEGORY_ICONS } from '@/data';
+import { useFavorites } from '@/hooks/useFavorites';
 
 const NAV = [
   { label: 'Главная', id: 'home' },
@@ -41,19 +42,33 @@ function KbjuBar({ kbju }: { kbju: { kcal: number; p: number; f: number; c: numb
 
 export default function Index() {
   const navigate = useNavigate();
+  const { toggle, isFav, count: favCount } = useFavorites();
   const [active, setActive] = useState<number | null>(null);
-  const [favorites, setFavorites] = useState<number[]>([]);
   const [query, setQuery] = useState('');
   const [email, setEmail] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory] = useState<string | null>(null);
 
   const toggleFavorite = (i: number, title: string) => {
-    setFavorites((prev) =>
-      prev.includes(i)
-        ? prev.filter((x) => x !== i)
-        : [...prev, i]
-    );
-    toast(favorites.includes(i) ? `«${title}» убрано из избранного` : `«${title}» в избранном!`);
+    const wasInFav = isFav(i);
+    toggle(i);
+    if (!wasInFav) {
+      toast(
+        <div className="flex items-center gap-3">
+          <Icon name="Heart" size={18} className="fill-red-500 text-red-500" />
+          <div>
+            <div className="font-semibold">«{title}» в избранном!</div>
+            <button
+              onClick={() => navigate('/favorites')}
+              className="text-xs text-primary underline"
+            >
+              Открыть избранное →
+            </button>
+          </div>
+        </div>
+      );
+    } else {
+      toast(`«${title}» убрано из избранного`);
+    }
   };
 
   const filteredRecipes = RECIPES.filter((r) => {
@@ -71,7 +86,6 @@ export default function Index() {
       toast('Введите название рецепта');
       return;
     }
-    setActiveCategory(null);
     scrollToId('recipes');
   };
 
@@ -100,9 +114,22 @@ export default function Index() {
               <button key={n.label} onClick={() => scrollToId(n.id)} className="text-sm font-medium text-foreground/70 transition-colors hover:text-primary">{n.label}</button>
             ))}
           </nav>
-          <Button onClick={() => scrollToId('premium')} className="rounded-full font-semibold">
-            <Icon name="Crown" size={16} className="mr-1" /> Премиум
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/favorites')}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+            >
+              <Icon name="Heart" size={18} className={favCount > 0 ? 'fill-primary text-primary' : ''} />
+              {favCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {favCount}
+                </span>
+              )}
+            </button>
+            <Button onClick={() => scrollToId('premium')} className="rounded-full font-semibold">
+              <Icon name="Crown" size={16} className="mr-1" /> Премиум
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -207,7 +234,7 @@ export default function Index() {
                   onClick={() => toggleFavorite(i, r.title)}
                   className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-primary backdrop-blur transition-transform hover:scale-110"
                 >
-                  <Icon name="Heart" size={18} className={favorites.includes(i) ? 'fill-primary' : ''} />
+                  <Icon name="Heart" size={18} className={isFav(i) ? 'fill-primary' : ''} />
                 </button>
                 <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold backdrop-blur">
                   {r.category}

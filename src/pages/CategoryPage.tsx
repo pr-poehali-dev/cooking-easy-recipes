@@ -10,6 +10,7 @@ import {
   CATEGORY_PRODUCTS,
   CATEGORY_BLOG,
 } from '@/data';
+import { useFavorites } from '@/hooks/useFavorites';
 
 function KbjuBar({ kbju }: { kbju: { kcal: number; p: number; f: number; c: number } }) {
   const items = [
@@ -42,9 +43,9 @@ export default function CategoryPage() {
   const navigate = useNavigate();
   const category = decodeURIComponent(name || '');
 
+  const { toggle, isFav, count: favCount } = useFavorites();
   const [tab, setTab] = useState<'recipes' | 'blog' | 'products'>('recipes');
   const [activeRecipe, setActiveRecipe] = useState<number | null>(null);
-  const [favorites, setFavorites] = useState<number[]>([]);
 
   const recipes = RECIPES.filter((r) => r.category === category);
   const icon = CATEGORY_ICONS[category] || 'UtensilsCrossed';
@@ -73,12 +74,25 @@ export default function CategoryPage() {
             </div>
             <span className="font-display text-xl font-bold">ВкусноПросто</span>
           </button>
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-          >
-            <Icon name="ArrowLeft" size={16} /> Все категории
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/favorites')}
+              className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:border-primary hover:text-primary"
+            >
+              <Icon name="Heart" size={16} className={favCount > 0 ? 'fill-primary text-primary' : ''} />
+              {favCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
+                  {favCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+            >
+              <Icon name="ArrowLeft" size={16} /> Все категории
+            </button>
+          </div>
         </div>
       </header>
 
@@ -148,14 +162,17 @@ export default function CategoryPage() {
                         <img src={r.img} alt={r.title} className="aspect-[4/3] w-full object-cover" />
                         <button
                           onClick={() => {
-                            setFavorites((prev) =>
-                              prev.includes(globalIdx) ? prev.filter((x) => x !== globalIdx) : [...prev, globalIdx]
-                            );
-                            toast(favorites.includes(globalIdx) ? `«${r.title}» убрано из избранного` : `«${r.title}» в избранном!`);
+                            const wasInFav = isFav(globalIdx);
+                            toggle(globalIdx);
+                            if (!wasInFav) {
+                              toast(<div className="flex items-center gap-3"><Icon name="Heart" size={16} className="fill-red-500 text-red-500" /><div><div className="font-semibold">«{r.title}» в избранном!</div><button onClick={() => navigate('/favorites')} className="text-xs text-primary underline">Открыть избранное →</button></div></div>);
+                            } else {
+                              toast(`«${r.title}» убрано из избранного`);
+                            }
                           }}
                           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-primary backdrop-blur transition-transform hover:scale-110"
                         >
-                          <Icon name="Heart" size={18} className={favorites.includes(globalIdx) ? 'fill-primary' : ''} />
+                          <Icon name="Heart" size={18} className={isFav(globalIdx) ? 'fill-primary' : ''} />
                         </button>
                       </div>
                       <div className="p-5">
