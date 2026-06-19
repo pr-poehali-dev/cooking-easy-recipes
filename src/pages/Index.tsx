@@ -21,6 +21,7 @@ const NAV = [
   { label: 'Рецепты', id: 'recipes' },
   { label: 'Магазин', id: 'shop' },
   { label: 'Курсы', id: 'courses' },
+  { label: '❤️ Поддержать', id: 'donate' },
   { label: 'О нас', id: 'about' },
   { label: 'Контакты', id: 'contacts' },
 ];
@@ -672,6 +673,91 @@ export default function Index() {
               <Icon name={permission === 'granted' ? 'BellRing' : 'Bell'} size={18} />
               {permission === 'granted' ? 'Уведомления включены ✓' : 'Включить уведомления'}
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Донаты */}
+      <section id="donate" className="container scroll-mt-24 py-10">
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-8 md:p-10">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+          <div className="relative">
+            <div className="mb-5 flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-4xl">❤️</div>
+              <div>
+                <h2 className="font-display text-2xl font-bold md:text-3xl">Поддержи проект</h2>
+                <p className="text-sm text-muted-foreground">Твой донат помогает добавлять новые рецепты и улучшать сайт</p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              {/* Boosty */}
+              <a
+                href="https://boosty.to/YOUR_NAME"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => track('affiliate_click', 'donate_boosty')}
+                className="group flex flex-col gap-3 rounded-2xl border-2 border-orange-200 bg-orange-50 p-5 transition-all hover:-translate-y-1 hover:border-orange-400 hover:shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl">🚀</span>
+                  <span className="rounded-full bg-orange-400 px-2.5 py-0.5 text-[10px] font-bold text-white">Популярный</span>
+                </div>
+                <div>
+                  <div className="font-display text-lg font-bold text-orange-700">Boosty</div>
+                  <div className="text-xs text-orange-600">Карты РФ, СБП, любая сумма</div>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-semibold text-orange-500 group-hover:text-orange-700">
+                  Поддержать на Boosty <Icon name="ArrowRight" size={13} />
+                </div>
+              </a>
+
+              {/* ЮМонея */}
+              <a
+                href="https://yoomoney.ru/to/YOUR_WALLET"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => track('affiliate_click', 'donate_yoomoney')}
+                className="group flex flex-col gap-3 rounded-2xl border-2 border-violet-200 bg-violet-50 p-5 transition-all hover:-translate-y-1 hover:border-violet-400 hover:shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl">💜</span>
+                  <span className="rounded-full bg-violet-400 px-2.5 py-0.5 text-[10px] font-bold text-white">ЮMoney</span>
+                </div>
+                <div>
+                  <div className="font-display text-lg font-bold text-violet-700">ЮМонея</div>
+                  <div className="text-xs text-violet-600">Сбербанк, Тинькофф, WebMoney</div>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-semibold text-violet-500 group-hover:text-violet-700">
+                  Перевести через ЮМонею <Icon name="ArrowRight" size={13} />
+                </div>
+              </a>
+
+              {/* Tinkoff */}
+              <a
+                href="https://www.tinkoff.ru/cf/YOUR_LINK"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => track('affiliate_click', 'donate_tinkoff')}
+                className="group flex flex-col gap-3 rounded-2xl border-2 border-yellow-200 bg-yellow-50 p-5 transition-all hover:-translate-y-1 hover:border-yellow-400 hover:shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl">🟡</span>
+                  <span className="rounded-full bg-yellow-400 px-2.5 py-0.5 text-[10px] font-bold text-yellow-900">Т-Банк</span>
+                </div>
+                <div>
+                  <div className="font-display text-lg font-bold text-yellow-700">Tinkoff Донать</div>
+                  <div className="text-xs text-yellow-600">Быстрый перевод через Т-Банк</div>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-semibold text-yellow-600 group-hover:text-yellow-800">
+                  Задонатить в Т-Банке <Icon name="ArrowRight" size={13} />
+                </div>
+              </a>
+            </div>
+
+            <p className="mt-5 text-center text-xs text-muted-foreground">
+              Любая сумма важна 🙏 Спасибо, что помогаете проекту развиваться!
+            </p>
           </div>
         </div>
       </section>
