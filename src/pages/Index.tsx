@@ -7,6 +7,12 @@ import { toast } from 'sonner';
 import { RECIPES, CATEGORY_ICONS, POPULAR_PRODUCTS, AFFILIATE_COLORS, getProductsForRecipeCategory } from '@/data';
 import { useFavorites } from '@/hooks/useFavorites';
 import { usePageStats } from '@/hooks/usePageStats';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useEmailSubscription } from '@/hooks/useEmailSubscription';
+import SubscribeModal, { useSubscribeModal } from '@/components/SubscribeModal';
+import { SocialWidget } from '@/components/SocialWidget';
+import { ContactForm } from '@/components/ContactForm';
 import YandexAd from '@/components/YandexAd';
 
 const NAV = [
@@ -47,9 +53,12 @@ export default function Index() {
   const navigate = useNavigate();
   const { toggle, isFav, count: favCount } = useFavorites();
   const { visitors, online, timeOnPage, formatTime, formatVisitors } = usePageStats();
+  const { track, abVariant } = useAnalytics();
+  const { permission, requestPermission, sendRecipeNotification } = useNotifications();
+  const { open: modalOpen, setOpen: setModalOpen } = useSubscribeModal();
+  const emailSub = useEmailSubscription('footer', abVariant);
   const [active, setActive] = useState<number | null>(null);
   const [query, setQuery] = useState('');
-  const [email, setEmail] = useState('');
   const [activeCategory] = useState<string | null>(null);
 
   const toggleFavorite = (i: number, title: string) => {
@@ -82,6 +91,7 @@ export default function Index() {
   });
 
   const handleCategoryClick = (name: string) => {
+    track('category_click', name);
     navigate(`/category/${encodeURIComponent(name)}`);
   };
 
@@ -90,20 +100,26 @@ export default function Index() {
       toast('Введите название рецепта');
       return;
     }
+    track('search', query);
     scrollToId('recipes');
   };
 
-  const handleSubscribe = () => {
-    if (!email.includes('@')) {
-      toast('Введите корректный email');
-      return;
+  const handleNotifToggle = async () => {
+    if (permission === 'granted') {
+      sendRecipeNotification('Блины с икрой', 'Завтраки');
+    } else {
+      const ok = await requestPermission();
+      if (ok) toast('Уведомления включены! Будем сообщать о новых рецептах 🔔');
     }
-    toast(`Готово! Рецепты будут приходить на ${email}`);
-    setEmail('');
   };
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Попап подписки (A/B тест) */}
+      {modalOpen && <SubscribeModal onClose={() => setModalOpen(false)} />}
+
+      {/* Боковой виджет соцсетей */}
+      <SocialWidget variant="sidebar" />
       {/* Топ-баннер рекламы (728×90) — над шапкой */}
       <div className="border-b border-border/40 bg-muted/20 px-4 py-1.5">
         <YandexAd size="horizontal" blockId="top-banner" className="mx-auto max-w-3xl !h-[50px] md:!h-[60px]" />
@@ -171,7 +187,7 @@ export default function Index() {
                 </span>
               )}
             </button>
-            <Button onClick={() => scrollToId('premium')} className="rounded-full font-semibold">
+            <Button onClick={() => { track('premium_click', 'header'); scrollToId('premium'); }} className="rounded-full font-semibold">
               <Icon name="Crown" size={16} className="mr-1" /> Премиум
             </Button>
           </div>
@@ -585,25 +601,86 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Subscription */}
+      {/* Subscription + Уведомления */}
       <section id="subscribe" className="container scroll-mt-24 py-12">
-        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary to-secondary p-10 text-center text-primary-foreground md:p-16">
-          <Icon name="Mail" size={40} className="mx-auto mb-4" />
-          <h2 className="font-display text-3xl font-bold md:text-4xl">Подпишитесь на новые рецепты</h2>
-          <p className="mx-auto mt-3 max-w-md text-primary-foreground/90">
-            Каждую неделю — подборка простых блюд с готовым расчётом КБЖУ прямо на почту.
-          </p>
-          <div className="mx-auto mt-6 flex max-w-md flex-col gap-2 sm:flex-row">
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
-              placeholder="Ваш email"
-              className="rounded-full border-0 bg-background/95 text-foreground"
-            />
-            <Button onClick={handleSubscribe} className="rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90">Подписаться</Button>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Email-подписка с бонусом */}
+          <div className="lg:col-span-2 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary to-secondary p-8 text-primary-foreground md:p-10">
+            <div className="absolute right-6 top-6 rounded-2xl bg-white/20 px-3 py-1 text-xs font-bold">
+              🎁 Бонус: PDF-сборник рецептов
+            </div>
+            <Icon name="Mail" size={36} className="mb-4" />
+            <h2 className="font-display text-2xl font-bold md:text-3xl">
+              {abVariant === 'B' ? 'Получите сборник 30 рецептов бесплатно!' : 'Подпишитесь на новые рецепты'}
+            </h2>
+            <p className="mt-2 text-sm text-primary-foreground/85">
+              {abVariant === 'B'
+                ? 'Введите email — пришлём PDF с 30 быстрыми рецептами и КБЖУ + еженедельная рассылка'
+                : 'Каждую неделю — подборка простых блюд с расчётом КБЖУ прямо на почту'}
+            </p>
+            {emailSub.success ? (
+              <div className="mt-5 rounded-2xl bg-white/20 p-4 text-center">
+                <div className="mb-1 text-2xl">🎉</div>
+                <p className="font-bold">Готово! Проверьте почту.</p>
+                <p className="text-xs text-primary-foreground/80">
+                  {abVariant === 'B' ? 'Сборник рецептов уже отправлен!' : 'Первая рассылка — на следующей неделе.'}
+                </p>
+              </div>
+            ) : (
+              <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="email" value={emailSub.email}
+                  onChange={e => emailSub.setEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && emailSub.subscribe()}
+                  placeholder="Ваш email"
+                  className="flex-1 rounded-full border-0 bg-background/95 px-5 py-3 text-sm text-foreground outline-none"
+                />
+                <button
+                  onClick={emailSub.subscribe}
+                  disabled={emailSub.loading}
+                  className="flex items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-bold text-background hover:opacity-90 disabled:opacity-60"
+                >
+                  {emailSub.loading
+                    ? <Icon name="Loader2" size={16} className="animate-spin" />
+                    : <Icon name="Send" size={16} />}
+                  {abVariant === 'B' ? 'Получить бесплатно' : 'Подписаться'}
+                </button>
+              </div>
+            )}
+            {emailSub.error && <p className="mt-2 text-xs text-white/80">{emailSub.error}</p>}
           </div>
+
+          {/* Push-уведомления */}
+          <div className="flex flex-col justify-between rounded-[2rem] border border-border bg-card p-8">
+            <div>
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Icon name="Bell" size={28} />
+              </div>
+              <h3 className="mb-2 font-display text-xl font-bold">Уведомления о рецептах</h3>
+              <p className="text-sm text-muted-foreground">
+                Включите push-уведомления — мы сообщим, когда появится новый рецепт в вашей любимой категории.
+              </p>
+            </div>
+            <button
+              onClick={handleNotifToggle}
+              className={`mt-6 flex items-center justify-center gap-2 rounded-full py-3 font-semibold transition-colors ${
+                permission === 'granted'
+                  ? 'bg-accent/15 text-accent'
+                  : 'bg-primary text-primary-foreground hover:opacity-90'
+              }`}
+            >
+              <Icon name={permission === 'granted' ? 'BellRing' : 'Bell'} size={18} />
+              {permission === 'granted' ? 'Уведомления включены ✓' : 'Включить уведомления'}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Соцсети + Форма обратной связи */}
+      <section id="contacts-form" className="container scroll-mt-24 py-8">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SocialWidget variant="inline" />
+          <ContactForm />
         </div>
       </section>
 
@@ -641,12 +718,18 @@ export default function Index() {
           <div>
             <h4 className="mb-3 font-display font-semibold">Мы в соцсетях</h4>
             <div className="flex gap-2">
-              {['Instagram', 'Send', 'Youtube'].map((s) => (
-                <button key={s} onClick={() => toast('Скоро добавим наши соцсети!')} className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
-                  <Icon name={s} size={18} />
+              {[{icon:'Users',label:'ВКонтакте'},{icon:'Send',label:'Telegram'},{icon:'Youtube',label:'YouTube'}].map((s) => (
+                <button key={s.icon} onClick={() => { track('affiliate_click', `social_${s.icon}`); toast(`${s.label} — скоро!`); }} className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+                  <Icon name={s.icon} size={18} />
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary"
+            >
+              <Icon name="BarChart3" size={13} /> Аналитика сайта
+            </button>
           </div>
         </div>
         {/* Реклама внутри футера */}
