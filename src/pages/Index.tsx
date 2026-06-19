@@ -1,110 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-
-const CATEGORY_ICONS: Record<string, string> = {
-  'Завтраки': 'Coffee',
-  'Супы': 'Soup',
-  'Основные': 'UtensilsCrossed',
-  'Салаты': 'Salad',
-  'Десерты': 'CakeSlice',
-  'Напитки': 'CupSoda',
-};
-
-const RECIPES = [
-  {
-    title: 'Борщ классический',
-    category: 'Супы',
-    time: 30,
-    difficulty: 'Просто',
-    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/2b5f0887-dca5-4ab7-b2e8-bac800feb76f.jpg',
-    kbju: { kcal: 210, p: 10, f: 8, c: 24 },
-    ingredients: ['Свёкла — 2 шт', 'Капуста — 200 г', 'Картофель — 2 шт', 'Морковь — 1 шт', 'Лук — 1 шт', 'Томатная паста — 2 ст.л.', 'Говяжий бульон — 1 л', 'Сметана, укроп — для подачи'],
-    steps: ['Нарежьте свёклу соломкой, обжарьте с томатной пастой 10 минут.', 'В кипящий бульон добавьте картофель кубиками и варите 10 минут.', 'Добавьте нашинкованную капусту и морковь, варите ещё 7 минут.', 'Введите свёклу, посолите, проварите 5 минут. Подавайте со сметаной и укропом.'],
-  },
-  {
-    title: 'Блины со сметаной',
-    category: 'Завтраки',
-    time: 20,
-    difficulty: 'Просто',
-    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/2eba423b-d81a-4ebd-8f92-032c53566530.jpg',
-    kbju: { kcal: 320, p: 9, f: 12, c: 44 },
-    ingredients: ['Мука — 200 г', 'Молоко — 500 мл', 'Яйца — 2 шт', 'Сахар — 1 ст.л.', 'Соль — щепотка', 'Масло сливочное — 30 г', 'Сметана — для подачи'],
-    steps: ['Взбейте яйца с сахаром и солью.', 'Добавьте муку и постепенно влейте молоко, размешайте до однородного теста без комков.', 'Добавьте растопленное масло. Дайте тесту постоять 10 минут.', 'Жарьте тонкие блины на раскалённой сковороде по 1–2 минуты с каждой стороны. Подавайте со сметаной.'],
-  },
-  {
-    title: 'Пельмени домашние',
-    category: 'Основные',
-    time: 25,
-    difficulty: 'Просто',
-    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/cf7f4b0f-4104-445c-9b8f-db0e48528e54.jpg',
-    kbju: { kcal: 520, p: 26, f: 18, c: 62 },
-    ingredients: ['Готовые пельмени — 400 г', 'Вода — 2 л', 'Соль — 1 ст.л.', 'Лавровый лист — 2 шт', 'Перец горошком — 5 шт', 'Сметана — для подачи', 'Сливочное масло — 20 г'],
-    steps: ['Доведите воду до кипения, добавьте соль, лавровый лист и перец.', 'Аккуратно опустите пельмени в кипящую воду, помешайте.', 'Варите 7–8 минут после всплытия до готовности.', 'Выложите в тарелку, добавьте масло. Подавайте со сметаной.'],
-  },
-  {
-    title: 'Салат Оливье',
-    category: 'Салаты',
-    time: 25,
-    difficulty: 'Просто',
-    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/f2e2a054-0009-4740-acba-dfa22a045249.jpg',
-    kbju: { kcal: 280, p: 11, f: 18, c: 19 },
-    ingredients: ['Картофель — 3 шт', 'Морковь — 2 шт', 'Яйца — 3 шт', 'Колбаса варёная — 200 г', 'Огурцы маринованные — 3 шт', 'Горошек — 1 банка', 'Майонез — 3 ст.л.'],
-    steps: ['Отварите картофель, морковь и яйца до готовности, остудите.', 'Нарежьте всё кубиками одинакового размера.', 'Добавьте горошек и нарезанную колбасу.', 'Заправьте майонезом, перемешайте, посолите по вкусу. Охладите 20 минут.'],
-  },
-  {
-    title: 'Медовик быстрый',
-    category: 'Десерты',
-    time: 30,
-    difficulty: 'Просто',
-    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/ff3df9a4-5f2a-45ff-9d6f-f1dcbda0c5d5.jpg',
-    kbju: { kcal: 420, p: 7, f: 16, c: 62 },
-    ingredients: ['Мёд — 3 ст.л.', 'Сахар — 100 г', 'Яйца — 2 шт', 'Масло — 80 г', 'Сода — 1 ч.л.', 'Мука — 350 г', 'Сметана 20% — 400 г для крема', 'Сахарная пудра — 3 ст.л.'],
-    steps: ['Растопите мёд с маслом и сахаром на водяной бане, добавьте соду — масса вспенится.', 'Снимите с огня, вбейте яйца, добавьте муку — замесите тесто.', 'Разделите на 6 частей, раскатайте и выпекайте коржи по 5 минут при 180°С.', 'Взбейте сметану с пудрой. Соберите торт, промазав каждый корж. Уберите в холодильник на 2 часа.'],
-  },
-  {
-    title: 'Уха рыбная',
-    category: 'Супы',
-    time: 25,
-    difficulty: 'Просто',
-    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/0607754d-514d-4b0f-b79a-ea97763626da.jpg',
-    kbju: { kcal: 180, p: 18, f: 5, c: 14 },
-    ingredients: ['Рыба (судак или горбуша) — 400 г', 'Картофель — 3 шт', 'Морковь — 1 шт', 'Лук — 1 шт', 'Вода — 1.5 л', 'Лавровый лист — 2 шт', 'Укроп, соль, перец — по вкусу'],
-    steps: ['Залейте рыбу холодной водой, доведите до кипения, снимите пену.', 'Добавьте нарезанные картофель, морковь и лук целиком.', 'Варите 15 минут на среднем огне, добавьте лавровый лист и специи.', 'Выньте лук, посыпьте свежим укропом и подавайте горячей.'],
-  },
-  {
-    title: 'Будда-боул с курицей',
-    category: 'Основные',
-    time: 25,
-    difficulty: 'Просто',
-    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/a8739846-db33-42c3-832a-d44b8e395f6c.jpg',
-    kbju: { kcal: 480, p: 38, f: 18, c: 42 },
-    ingredients: ['Куриное филе — 200 г', 'Киноа — 100 г', 'Авокадо — 1 шт', 'Черри — 6 шт', 'Микс салата — 50 г', 'Оливковое масло — 1 ст.л.'],
-    steps: ['Отварите киноа до готовности, около 15 минут.', 'Обжарьте куриное филе на сковороде с двух сторон.', 'Нарежьте авокадо и черри дольками.', 'Соберите боул, полейте маслом и подавайте.'],
-  },
-  {
-    title: 'Паста Карбонара',
-    category: 'Основные',
-    time: 20,
-    difficulty: 'Просто',
-    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/1607d259-58a3-4741-9869-5c1222c1044f.jpg',
-    kbju: { kcal: 620, p: 24, f: 28, c: 68 },
-    ingredients: ['Спагетти — 200 г', 'Бекон — 100 г', 'Яйца — 2 шт', 'Пармезан — 50 г', 'Чёрный перец — по вкусу'],
-    steps: ['Отварите спагетти аль денте.', 'Обжарьте бекон до хрустящей корочки.', 'Смешайте яйца с тёртым пармезаном.', 'Соедините всё, быстро перемешивая, посыпьте перцем.'],
-  },
-  {
-    title: 'Панкейки с ягодами',
-    category: 'Завтраки',
-    time: 15,
-    difficulty: 'Просто',
-    img: 'https://cdn.poehali.dev/projects/5f89fe4c-1f81-41ce-a75c-3324244c0f62/files/84991a6c-1cfb-4195-8651-db17ab1bd8d8.jpg',
-    kbju: { kcal: 390, p: 12, f: 11, c: 58 },
-    ingredients: ['Мука — 150 г', 'Молоко — 200 мл', 'Яйцо — 1 шт', 'Сахар — 2 ст.л.', 'Ягоды — 100 г', 'Мёд — по вкусу'],
-    steps: ['Смешайте муку, молоко, яйцо и сахар в тесто.', 'Выпекайте панкейки на сухой сковороде до золотистого цвета.', 'Выложите стопкой, украсьте свежими ягодами.', 'Полейте мёдом и подавайте тёплыми.'],
-  },
-];
+import { RECIPES, CATEGORY_ICONS } from '@/data';
 
 const NAV = [
   { label: 'Главная', id: 'home' },
@@ -140,6 +40,7 @@ function KbjuBar({ kbju }: { kbju: { kcal: number; p: number; f: number; c: numb
 }
 
 export default function Index() {
+  const navigate = useNavigate();
   const [active, setActive] = useState<number | null>(null);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [query, setQuery] = useState('');
@@ -162,10 +63,7 @@ export default function Index() {
   });
 
   const handleCategoryClick = (name: string) => {
-    const next = activeCategory === name ? null : name;
-    setActiveCategory(next);
-    setActive(null);
-    scrollToId('recipes');
+    navigate(`/category/${encodeURIComponent(name)}`);
   };
 
   const handleSearch = () => {
@@ -270,19 +168,18 @@ export default function Index() {
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {Object.entries(CATEGORY_ICONS).map(([name, icon]) => {
-            const isActive = activeCategory === name;
             const count = RECIPES.filter((r) => r.category === name).length;
             return (
               <button
                 key={name}
                 onClick={() => handleCategoryClick(name)}
-                className={`hover-lift group rounded-2xl border p-5 text-center transition-colors ${isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card'}`}
+                className="hover-lift group rounded-2xl border border-border bg-card p-5 text-center transition-colors"
               >
-                <div className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${isActive ? 'bg-white/20 text-white' : 'bg-muted text-primary group-hover:bg-primary group-hover:text-primary-foreground'}`}>
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                   <Icon name={icon} size={26} />
                 </div>
                 <div className="font-display text-lg font-semibold">{name}</div>
-                <div className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>{count} {count === 1 ? 'рецепт' : 'рецепта'}</div>
+                <div className="text-xs text-muted-foreground">{count} {count === 1 ? 'рецепт' : 'рецепта'}</div>
               </button>
             );
           })}
@@ -293,36 +190,14 @@ export default function Index() {
       <section id="recipes" className="container scroll-mt-24 py-12">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <span className="font-accent text-2xl text-primary">
-              {activeCategory ? activeCategory : 'самое популярное'}
-            </span>
-            <h2 className="font-display text-3xl font-bold md:text-4xl">
-              {activeCategory ? `Рецепты: ${activeCategory}` : 'Рецепты дня'}
-            </h2>
+            <span className="font-accent text-2xl text-primary">самое популярное</span>
+            <h2 className="font-display text-3xl font-bold md:text-4xl">Рецепты дня</h2>
           </div>
-          <div className="flex items-center gap-3">
-            {activeCategory && (
-              <button
-                onClick={() => { setActiveCategory(null); setActive(null); }}
-                className="flex items-center gap-1 rounded-full border border-border px-3 py-1 text-sm font-semibold text-muted-foreground hover:text-primary"
-              >
-                <Icon name="X" size={14} /> Сбросить
-              </button>
-            )}
-            <button onClick={() => toast('Скоро здесь будет полный каталог рецептов!')} className="text-sm font-semibold text-primary hover:underline">Все рецепты →</button>
-          </div>
+          <button onClick={() => scrollToId('categories')} className="text-sm font-semibold text-primary hover:underline">Все категории →</button>
         </div>
 
-        {filteredRecipes.length === 0 && (
-          <div className="py-16 text-center text-muted-foreground">
-            <Icon name="SearchX" size={48} className="mx-auto mb-4 opacity-30" />
-            <p className="text-lg font-semibold">Рецепты не найдены</p>
-            <p className="text-sm">Попробуйте другую категорию или поисковый запрос</p>
-          </div>
-        )}
-
         <div className="grid gap-6 md:grid-cols-3">
-          {filteredRecipes.map((r) => {
+          {RECIPES.slice(0, 6).map((r) => {
             const i = RECIPES.indexOf(r);
             return (
             <article key={r.title} className="hover-lift overflow-hidden rounded-3xl border border-border bg-card">
