@@ -84,6 +84,7 @@ export default function Index() {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [query, setQuery] = useState('');
   const [email, setEmail] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const toggleFavorite = (i: number, title: string) => {
     setFavorites((prev) =>
@@ -94,12 +95,25 @@ export default function Index() {
     toast(favorites.includes(i) ? `«${title}» убрано из избранного` : `«${title}» в избранном!`);
   };
 
+  const filteredRecipes = RECIPES.filter((r) => {
+    const matchCat = !activeCategory || r.category === activeCategory;
+    const matchQuery = !query.trim() || r.title.toLowerCase().includes(query.trim().toLowerCase());
+    return matchCat && matchQuery;
+  });
+
+  const handleCategoryClick = (name: string) => {
+    const next = activeCategory === name ? null : name;
+    setActiveCategory(next);
+    setActive(null);
+    scrollToId('recipes');
+  };
+
   const handleSearch = () => {
     if (!query.trim()) {
       toast('Введите название рецепта');
       return;
     }
-    toast(`Ищем рецепты по запросу «${query}»`);
+    setActiveCategory(null);
     scrollToId('recipes');
   };
 
@@ -190,19 +204,22 @@ export default function Index() {
           <button onClick={() => scrollToId('recipes')} className="text-sm font-semibold text-primary hover:underline">Все категории →</button>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.name}
-              onClick={() => { toast(`Категория «${c.name}» — ${c.count} рецептов`); scrollToId('recipes'); }}
-              className="hover-lift group rounded-2xl border border-border bg-card p-5 text-center"
-            >
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                <Icon name={c.icon} size={26} />
-              </div>
-              <div className="font-display text-lg font-semibold">{c.name}</div>
-              <div className="text-xs text-muted-foreground">{c.count} рецептов</div>
-            </button>
-          ))}
+          {CATEGORIES.map((c) => {
+            const isActive = activeCategory === c.name;
+            return (
+              <button
+                key={c.name}
+                onClick={() => handleCategoryClick(c.name)}
+                className={`hover-lift group rounded-2xl border p-5 text-center transition-colors ${isActive ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card'}`}
+              >
+                <div className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${isActive ? 'bg-white/20 text-white' : 'bg-muted text-primary group-hover:bg-primary group-hover:text-primary-foreground'}`}>
+                  <Icon name={c.icon} size={26} />
+                </div>
+                <div className="font-display text-lg font-semibold">{c.name}</div>
+                <div className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>{c.count} рецептов</div>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -210,13 +227,38 @@ export default function Index() {
       <section id="recipes" className="container scroll-mt-24 py-12">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <span className="font-accent text-2xl text-primary">самое популярное</span>
-            <h2 className="font-display text-3xl font-bold md:text-4xl">Рецепты дня</h2>
+            <span className="font-accent text-2xl text-primary">
+              {activeCategory ? activeCategory : 'самое популярное'}
+            </span>
+            <h2 className="font-display text-3xl font-bold md:text-4xl">
+              {activeCategory ? `Рецепты: ${activeCategory}` : 'Рецепты дня'}
+            </h2>
           </div>
-          <button onClick={() => toast('Скоро здесь будет полный каталог рецептов!')} className="text-sm font-semibold text-primary hover:underline">Все рецепты →</button>
+          <div className="flex items-center gap-3">
+            {activeCategory && (
+              <button
+                onClick={() => { setActiveCategory(null); setActive(null); }}
+                className="flex items-center gap-1 rounded-full border border-border px-3 py-1 text-sm font-semibold text-muted-foreground hover:text-primary"
+              >
+                <Icon name="X" size={14} /> Сбросить
+              </button>
+            )}
+            <button onClick={() => toast('Скоро здесь будет полный каталог рецептов!')} className="text-sm font-semibold text-primary hover:underline">Все рецепты →</button>
+          </div>
         </div>
+
+        {filteredRecipes.length === 0 && (
+          <div className="py-16 text-center text-muted-foreground">
+            <Icon name="SearchX" size={48} className="mx-auto mb-4 opacity-30" />
+            <p className="text-lg font-semibold">Рецепты не найдены</p>
+            <p className="text-sm">Попробуйте другую категорию или поисковый запрос</p>
+          </div>
+        )}
+
         <div className="grid gap-6 md:grid-cols-3">
-          {RECIPES.map((r, i) => (
+          {filteredRecipes.map((r) => {
+            const i = RECIPES.indexOf(r);
+            return (
             <article key={r.title} className="hover-lift overflow-hidden rounded-3xl border border-border bg-card">
               <div className="relative">
                 <img src={r.img} alt={r.title} className="aspect-[4/3] w-full object-cover" />
@@ -279,7 +321,8 @@ export default function Index() {
                 )}
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 
