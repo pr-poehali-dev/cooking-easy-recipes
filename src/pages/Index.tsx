@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 const CATEGORIES = [
   { name: 'Завтраки', icon: 'Coffee', count: 42 },
@@ -45,7 +46,18 @@ const RECIPES = [
   },
 ];
 
-const NAV = ['Главная', 'Категории', 'Рецепты', 'Избранное', 'О нас', 'Контакты'];
+const NAV = [
+  { label: 'Главная', id: 'home' },
+  { label: 'Категории', id: 'categories' },
+  { label: 'Рецепты', id: 'recipes' },
+  { label: 'Избранное', id: 'recipes' },
+  { label: 'О нас', id: 'about' },
+  { label: 'Контакты', id: 'contacts' },
+];
+
+function scrollToId(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 function KbjuBar({ kbju }: { kbju: { kcal: number; p: number; f: number; c: number } }) {
   const items = [
@@ -69,31 +81,61 @@ function KbjuBar({ kbju }: { kbju: { kcal: number; p: number; f: number; c: numb
 
 export default function Index() {
   const [active, setActive] = useState<number | null>(null);
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [query, setQuery] = useState('');
+  const [email, setEmail] = useState('');
+
+  const toggleFavorite = (i: number, title: string) => {
+    setFavorites((prev) =>
+      prev.includes(i)
+        ? prev.filter((x) => x !== i)
+        : [...prev, i]
+    );
+    toast(favorites.includes(i) ? `«${title}» убрано из избранного` : `«${title}» в избранном!`);
+  };
+
+  const handleSearch = () => {
+    if (!query.trim()) {
+      toast('Введите название рецепта');
+      return;
+    }
+    toast(`Ищем рецепты по запросу «${query}»`);
+    scrollToId('recipes');
+  };
+
+  const handleSubscribe = () => {
+    if (!email.includes('@')) {
+      toast('Введите корректный email');
+      return;
+    }
+    toast(`Готово! Рецепты будут приходить на ${email}`);
+    setEmail('');
+  };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
         <div className="container flex h-18 items-center justify-between py-4">
-          <a href="#" className="flex items-center gap-2">
+          <button onClick={() => scrollToId('home')} className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Icon name="ChefHat" size={22} />
             </div>
             <span className="font-display text-2xl font-bold tracking-tight">ВкусноПросто</span>
-          </a>
+          </button>
           <nav className="hidden items-center gap-7 md:flex">
             {NAV.map((n) => (
-              <a key={n} href="#" className="text-sm font-medium text-foreground/70 transition-colors hover:text-primary">{n}</a>
+              <button key={n.label} onClick={() => scrollToId(n.id)} className="text-sm font-medium text-foreground/70 transition-colors hover:text-primary">{n.label}</button>
             ))}
           </nav>
-          <Button className="rounded-full font-semibold">
+          <Button onClick={() => scrollToId('subscribe')} className="rounded-full font-semibold">
             <Icon name="Bell" size={16} className="mr-1" /> Подписка
           </Button>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section id="home" className="relative overflow-hidden">
         <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-secondary/30 blur-3xl" />
         <div className="absolute -bottom-20 left-10 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
         <div className="container relative grid items-center gap-10 py-16 md:grid-cols-2 md:py-24">
@@ -109,8 +151,14 @@ export default function Index() {
             </p>
             <div className="mt-8 flex max-w-md items-center gap-2 rounded-full border border-border bg-card p-2 shadow-sm">
               <Icon name="Search" size={20} className="ml-3 text-muted-foreground" />
-              <Input placeholder="Найти рецепт..." className="border-0 bg-transparent shadow-none focus-visible:ring-0" />
-              <Button className="rounded-full font-semibold">Искать</Button>
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Найти рецепт..."
+                className="border-0 bg-transparent shadow-none focus-visible:ring-0"
+              />
+              <Button onClick={handleSearch} className="rounded-full font-semibold">Искать</Button>
             </div>
           </div>
           <div className="relative animate-scale-in">
@@ -136,14 +184,18 @@ export default function Index() {
       </section>
 
       {/* Categories */}
-      <section className="container py-12">
+      <section id="categories" className="container scroll-mt-24 py-12">
         <div className="mb-8 flex items-end justify-between">
           <h2 className="font-display text-3xl font-bold md:text-4xl">Категории</h2>
-          <a href="#" className="text-sm font-semibold text-primary hover:underline">Все категории →</a>
+          <button onClick={() => scrollToId('recipes')} className="text-sm font-semibold text-primary hover:underline">Все категории →</button>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {CATEGORIES.map((c) => (
-            <button key={c.name} className="hover-lift group rounded-2xl border border-border bg-card p-5 text-center">
+            <button
+              key={c.name}
+              onClick={() => { toast(`Категория «${c.name}» — ${c.count} рецептов`); scrollToId('recipes'); }}
+              className="hover-lift group rounded-2xl border border-border bg-card p-5 text-center"
+            >
               <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                 <Icon name={c.icon} size={26} />
               </div>
@@ -155,21 +207,24 @@ export default function Index() {
       </section>
 
       {/* Recipes */}
-      <section className="container py-12">
+      <section id="recipes" className="container scroll-mt-24 py-12">
         <div className="mb-8 flex items-end justify-between">
           <div>
             <span className="font-accent text-2xl text-primary">самое популярное</span>
             <h2 className="font-display text-3xl font-bold md:text-4xl">Рецепты дня</h2>
           </div>
-          <a href="#" className="text-sm font-semibold text-primary hover:underline">Все рецепты →</a>
+          <button onClick={() => toast('Скоро здесь будет полный каталог рецептов!')} className="text-sm font-semibold text-primary hover:underline">Все рецепты →</button>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {RECIPES.map((r, i) => (
             <article key={r.title} className="hover-lift overflow-hidden rounded-3xl border border-border bg-card">
               <div className="relative">
                 <img src={r.img} alt={r.title} className="aspect-[4/3] w-full object-cover" />
-                <button className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-primary backdrop-blur transition-transform hover:scale-110">
-                  <Icon name="Heart" size={18} />
+                <button
+                  onClick={() => toggleFavorite(i, r.title)}
+                  className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 text-primary backdrop-blur transition-transform hover:scale-110"
+                >
+                  <Icon name="Heart" size={18} className={favorites.includes(i) ? 'fill-primary' : ''} />
                 </button>
                 <span className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-xs font-semibold backdrop-blur">
                   {r.category}
@@ -229,7 +284,7 @@ export default function Index() {
       </section>
 
       {/* About */}
-      <section className="container py-12">
+      <section id="about" className="container scroll-mt-24 py-12">
         <div className="grid gap-6 rounded-[2rem] bg-foreground p-8 text-background md:grid-cols-3 md:p-12">
           {[
             { icon: 'Calculator', t: 'Точный КБЖУ', d: 'Автоматический расчёт калорий, белков, жиров и углеводов для каждого блюда.' },
@@ -248,7 +303,7 @@ export default function Index() {
       </section>
 
       {/* Subscription */}
-      <section className="container py-12">
+      <section id="subscribe" className="container scroll-mt-24 py-12">
         <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary to-secondary p-10 text-center text-primary-foreground md:p-16">
           <Icon name="Mail" size={40} className="mx-auto mb-4" />
           <h2 className="font-display text-3xl font-bold md:text-4xl">Подпишитесь на новые рецепты</h2>
@@ -256,35 +311,42 @@ export default function Index() {
             Каждую неделю — подборка простых блюд с готовым расчётом КБЖУ прямо на почту.
           </p>
           <div className="mx-auto mt-6 flex max-w-md flex-col gap-2 sm:flex-row">
-            <Input placeholder="Ваш email" className="rounded-full border-0 bg-background/95 text-foreground" />
-            <Button className="rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90">Подписаться</Button>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
+              placeholder="Ваш email"
+              className="rounded-full border-0 bg-background/95 text-foreground"
+            />
+            <Button onClick={handleSubscribe} className="rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90">Подписаться</Button>
           </div>
         </div>
       </section>
 
       {/* Footer / Contacts */}
-      <footer className="border-t border-border bg-card">
+      <footer id="contacts" className="scroll-mt-24 border-t border-border bg-card">
         <div className="container grid gap-8 py-12 md:grid-cols-4">
           <div>
-            <div className="mb-3 flex items-center gap-2">
+            <button onClick={() => scrollToId('home')} className="mb-3 flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <Icon name="ChefHat" size={20} />
               </div>
               <span className="font-display text-xl font-bold">ВкусноПросто</span>
-            </div>
+            </button>
             <p className="text-sm text-muted-foreground">Простые рецепты с пошаговым приготовлением и расчётом КБЖУ.</p>
           </div>
           <div>
             <h4 className="mb-3 font-display font-semibold">Разделы</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              {NAV.map((n) => <li key={n}><a href="#" className="hover:text-primary">{n}</a></li>)}
+              {NAV.map((n) => <li key={n.label}><button onClick={() => scrollToId(n.id)} className="hover:text-primary">{n.label}</button></li>)}
             </ul>
           </div>
           <div>
             <h4 className="mb-3 font-display font-semibold">Контакты</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><Icon name="Mail" size={15} /> hello@vkusnoprosto.ru</li>
-              <li className="flex items-center gap-2"><Icon name="Phone" size={15} /> +7 (900) 123-45-67</li>
+              <li><a href="mailto:hello@vkusnoprosto.ru" className="flex items-center gap-2 hover:text-primary"><Icon name="Mail" size={15} /> hello@vkusnoprosto.ru</a></li>
+              <li><a href="tel:+79001234567" className="flex items-center gap-2 hover:text-primary"><Icon name="Phone" size={15} /> +7 (900) 123-45-67</a></li>
               <li className="flex items-center gap-2"><Icon name="MapPin" size={15} /> Москва, Россия</li>
             </ul>
           </div>
@@ -292,9 +354,9 @@ export default function Index() {
             <h4 className="mb-3 font-display font-semibold">Мы в соцсетях</h4>
             <div className="flex gap-2">
               {['Instagram', 'Send', 'Youtube'].map((s) => (
-                <a key={s} href="#" className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+                <button key={s} onClick={() => toast('Скоро добавим наши соцсети!')} className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
                   <Icon name={s} size={18} />
-                </a>
+                </button>
               ))}
             </div>
           </div>
