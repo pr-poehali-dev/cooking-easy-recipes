@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
@@ -52,6 +52,45 @@ export default function CategoryPage() {
   const description = CATEGORY_DESCRIPTIONS[category] || '';
   const products = CATEGORY_PRODUCTS[category] || [];
   const blogs = CATEGORY_BLOG[category] || [];
+
+  useEffect(() => {
+    if (!category) return;
+    document.title = `${category} — простые рецепты | ВкусноПросто`;
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute('content', description || `Рецепты в категории «${category}» с пошаговыми инструкциями и расчётом калорий.`);
+
+    const schemaData = {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `${category} — рецепты`,
+      description: description,
+      url: window.location.href,
+      hasPart: recipes.map((r) => ({
+        '@type': 'Recipe',
+        name: r.title,
+        image: r.img,
+        totalTime: `PT${r.time}M`,
+        nutrition: { '@type': 'NutritionInformation', calories: `${r.kbju.kcal} ккал` },
+        recipeIngredient: r.ingredients,
+        recipeInstructions: r.steps.map((s) => ({ '@type': 'HowToStep', text: s })),
+      })),
+    };
+    let script = document.getElementById('schema-org') as HTMLScriptElement | null;
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'schema-org';
+      script.type = 'application/ld+json';
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(schemaData);
+
+    return () => {
+      document.title = 'ВкусноПросто — простые и вкусные рецепты на каждый день';
+      if (meta) meta.setAttribute('content', 'Простые рецепты завтраков, супов, основных блюд, салатов и десертов с пошаговыми инструкциями и расчётом калорий. Готовь вкусно каждый день!');
+      const s = document.getElementById('schema-org');
+      if (s) s.remove();
+    };
+  }, [category, description, recipes]);
 
   if (!CATEGORY_ICONS[category]) {
     return (
