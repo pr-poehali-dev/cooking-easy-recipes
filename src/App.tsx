@@ -11,6 +11,11 @@ import ShopPage from "./pages/ShopPage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
 
+const YandexVerify = () => {
+  document.open(); document.write('<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body>Verification: 617f0117d58c5cb3</body></html>'); document.close();
+  return null;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -25,6 +30,7 @@ const App = () => (
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/yandex_617f0117d58c5cb3.html" element={<YandexVerify />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
